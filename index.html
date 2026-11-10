@@ -10,9 +10,10 @@
 
 <body>
     <h1 class="p-3 font-bold">My Store</h1>
-    <div><input type="text" id="recherche" placeholder="Search products..." class="border w-[70%] h-[40px] rounded-full pl-2 ml-5.5"></div>
-    <form id="filter" class="flex flex-wrap justify-around m-4.5">
-        <div class="flex flex-wrap">
+    <div><input type="text" id="recherche" placeholder="Search products..."
+            class="border w-[70%] max-[500px]:w-[90%] h-[40px] rounded-full pl-2 ml-5.5"></div>
+    <form id="filter" class="flex flex-wrap justify-around m-4.5 max-[500px]:justify-start ">
+        <div class="flex flex-wrap max-[500px]:mb-2.5">
             <label class="mt-2.5 mr-2.5">Category</label>
             <select id="category" class="border  w-[200px] h-[40px] rounded-full pl-2 ">
                 <option value="">..</option>
@@ -32,31 +33,38 @@
     </form>
     <h2 class="p-3 font-bold">Products</h2>
     <section id="catalog" class="flex flex-wrap gap-6.5 ml-10">
-        <div class="w-[30%] bg-gray-100 p-4 rounded-[5%] gap">
-            <img src="image/imgtest.PNG" class="rounded-[5%] ">
-            <h2 class="font-bold">Headphones</h2>
-            <p class="text-xs">Wireless headphones</p>
-            <h3 class="text-xl font-bold">$59.99</h3>
-            <span class="bg-green-200 text-green-700 pl-2 pr-2 rounded-full">In stock</span>
-        </div>
-        <div class="w-[30%] bg-gray-100 p-4 rounded-[5%]">
+        <article class="w-[30%] max-[500px]:w-[90%] bg-gray-100 p-4 rounded-[5%] gap">
+            <div>
+                <img src="image/imgtest.PNG" class="rounded-[5%] ">
+                <h2 class="font-bold">Headphones</h2>
+                <p class="text-xs">Wireless headphones</p>
+                <h3 class="text-xl font-bold">$59.99</h3>
+                <span class="bg-green-200 text-green-700 pl-2 pr-2 rounded-full">In stock</span>
+            </div>
+        </article>
+        <article class="w-[30%] max-[500px]:w-[90%] bg-gray-100 p-4 rounded-[5%] ">
+            <div>
+                <img src="image/img2test.PNG" class="rounded-[5%]">
+                <h2 class="font-bold">Smartwatch</h2>
+                <p class="text-xs">Smart watch</p>
+                <h3 class="text-xl font-bold">$89.99</h3>
+                <span class="bg-green-200 text-green-700 pl-2 pr-2 rounded-full">In stock</span>
+            </div>
+        </article>
+        <article class="w-[30%] max-[500px]:w-[90%] bg-gray-100 p-4 rounded-[5%]">
             <img src="image/img2test.PNG" class="rounded-[5%]">
-            <h2 class="font-bold">Smartwatch</h2>
-            <p class="text-xs">Smart watch</p>
-            <h3 class="text-xl font-bold">$89.99</h3>
-            <span class="bg-green-200 text-green-700 pl-2 pr-2 rounded-full">In stock</span>
-        </div>
-        <div class="w-[30%] bg-gray-100 p-4 rounded-[5%]">
-            <img src="image/img2test.PNG" class="rounded-[5%]">
-            <h2 class="font-bold">Smartwatch</h2>
-            <p class="text-xs">Smart watch</p>
-            <h3 class="text-xl font-bold">$89.99</h3>
-            <span class="bg-green-200 text-green-700 pl-2 pr-2 rounded-full">In stock</span>
-        </div>
+            <div>
+                <h2 class="font-bold">Smartwatch</h2>
+                <p class="text-xs">Smart watch</p>
+                <h3 class="text-xl font-bold">$89.99</h3>
+                <span class="bg-green-200 text-green-700 pl-2 pr-2 rounded-full">In stock</span>
+            </div>
+        </article>
 
 
     </section>
+    
 
 </body>
-
+ 
 </html>

@@ -1,22 +1,20 @@
 async function getData() {
-    try{
+    try {
         const response = await fetch("http://localhost:3000/api/products");
-    //  console.log(response.status);
+        //  console.log(response.status);
         return await response.json();
-    }catch (error) {
+    } catch (error) {
         console.error("Une erreur est :", error);
     }
 }
 
 
-async function afficherProduct(){
-    const data = await getData();
+function afficherProduct(data) {
     const catalog = document.getElementById('catalog');
-    
-    if(data){
+    if (data) {
         catalog.innerHTML = "";
-         data.forEach(function(element){
-       catalog.innerHTML += `<article class="w-[30%] max-[500px]:w-[90%] bg-gray-100 p-4 rounded-[5%] gap">
+        data.forEach(function (element) {
+            catalog.innerHTML += `<article class="w-[30%] max-[500px]:w-[90%] bg-gray-100 p-4 rounded-[5%] gap">
             <div>
                 <img src="http://localhost:3000${element.image}" class="rounded-[5%] ">
                 <h2 class="font-bold">${element.name}</h2>
@@ -26,11 +24,50 @@ async function afficherProduct(){
             </div>
         </article>`
 
-    });
-    }else{
-        catalog.textContent = 'catalogue vide !'
+        });
+    } else {
+        catalog.textContent = 'Aucun produit trouvé !'
     }
-   
-    
+
+
+
 }
-afficherProduct()
+// async function searchProduct() {
+//     const data = await getData();
+//     const search = document.getElementById('recherche');
+//     afficherProduct(data);
+//     search.addEventListener('input', function () {
+
+//         let searchInput = search.value.toLowerCase().trim();
+
+//         let filtreProduct = data.filter(function(item) {
+//             let nom = item.name.toLowerCase();
+//             let description = item.description.toLowerCase();
+//             return nom.includes(searchInput) || description.includes(searchInput);
+//         });
+//         afficherProduct(filtreProduct);
+//     });
+// };
+async function display() {
+    const data = await getData();
+    afficherProduct(data);
+}
+
+
+async function searchProduct() {
+    const catalog = document.getElementById('catalog');
+    const search = document.getElementById('recherche');
+    search.addEventListener('input', async function () {
+        const response = await fetch(`http://localhost:3000/api/products?search=${search.value}`);
+        // console.log(response.status);
+        const product = await response.json();
+        if (product.length > 0) {
+            afficherProduct(product);
+        }else{
+            catalog.textContent = `aucun produit trouvé`
+        }
+    })
+}
+display()
+searchProduct()
+

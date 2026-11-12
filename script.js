@@ -63,11 +63,38 @@ async function searchProduct() {
         const product = await response.json();
         if (product.length > 0) {
             afficherProduct(product);
-        }else{
+        } else {
             catalog.textContent = `aucun produit trouvé`
         }
     })
 }
+
+async function getCategory() {
+    const response = await fetch("http://localhost:3000/api/categories");
+    const category = document.getElementById('category');
+    // console.log(response.status);
+    let res = await response.json();
+    category.innerHTML = `<option value="">All categories</option>`;
+    let option;
+    res.forEach(function (item) {
+        option = document.createElement('option');
+        console.log(item.name)
+        option.innerHTML = item.name;
+        option.value = item.id;
+        category.appendChild(option);
+        console.log(option.value)
+
+
+    })
+    category.addEventListener('change', async function () {
+        let select = this.value;
+        const reponse = await fetch(`http://localhost:3000/api/products?categoryId=${select}`)
+        const productByCategory = await reponse.json();
+        afficherProduct(productByCategory);
+    })
+}
+
+getCategory()
 display()
 searchProduct()
 

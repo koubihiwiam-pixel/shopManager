@@ -1,7 +1,14 @@
+const API_BASE = "http://localhost:3000/api"
+
+const price = document.getElementById('price');
+const catalog = document.getElementById('catalog');
+const category = document.getElementById('category');
+const search = document.getElementById('recherche');
+const inStock = document.getElementById('in-stock');
+
 async function getData() {
     try {
-        const response = await fetch("http://localhost:3000/api/products");
-        //  console.log(response.status);
+        const response = await fetch(API_BASE + "/products");
         return await response.json();
     } catch (error) {
         console.error("Une erreur est :", error);
@@ -10,11 +17,14 @@ async function getData() {
 
 
 function afficherProduct(data) {
-    const catalog = document.getElementById('catalog');
-    if (data) {
-        catalog.innerHTML = "";
-        data.forEach(function (element) {
-            catalog.innerHTML += `<article class="w-[30%] max-[500px]:w-[90%] bg-gray-100 p-4 rounded-[5%] gap">
+
+    if (!data) {
+        catalog.textContent = 'Aucun produit trouvé !';
+        return;
+    }
+    catalog.innerHTML = "";
+    data.forEach(function (element) {
+        catalog.innerHTML += `<article class="w-[30%] max-[500px]:w-[90%] bg-gray-100 p-4 rounded-[5%] gap">
             <div>
                 <img src="http://localhost:3000${element.image}" class="rounded-[5%] ">
                 <h2 class="font-bold">${element.name}</h2>
@@ -24,12 +34,7 @@ function afficherProduct(data) {
             </div>
         </article>`
 
-        });
-    } else {
-        catalog.textContent = 'Aucun produit trouvé !'
-    }
-
-
+    });
 
 }
 // async function searchProduct() {
@@ -53,64 +58,99 @@ async function display() {
     afficherProduct(data);
 }
 
-const catalog = document.getElementById('catalog');
-async function searchProduct() {
-    
-    const search = document.getElementById('recherche');
-    search.addEventListener('input', async function () {
-        const response = await fetch(`http://localhost:3000/api/products?search=${search.value}`);
-        // console.log(response.status);
-        const product = await response.json();
-        if (product.length > 0) {
-            afficherProduct(product);
-        } else {
-            catalog.textContent = `aucun produit trouvé`
-        }
-    })
+async function searchProduct(serchValue) {
+
+    const response = await fetch(API_BASE + `/products?search=${serchValue}`);
+    // console.log(response.status);
+    const product = await response.json();
+    if (product.length > 0) {
+        afficherProduct(product);
+    } else {
+        catalog.textContent = `aucun produit trouvé`
+    }
+
 }
 
 async function getCategory() {
-    const response = await fetch("http://localhost:3000/api/categories");
-    const category = document.getElementById('category');
+    const response = await fetch(API_BASE + "/categories");
     // console.log(response.status);
     let res = await response.json();
     category.innerHTML = `<option value="">All categories</option>`;
     let option;
     res.forEach(function (item) {
         option = document.createElement('option');
-        console.log(item.name)
-        option.innerHTML = item.name;
+        // console.log(item.name)
+        option.textContent = item.name;
         option.value = item.id;
         category.appendChild(option);
-        console.log(option.value)
+        // console.log(option.value)
 
 
     })
     category.addEventListener('change', async function () {
         let select = this.value;
-        const reponse = await fetch(`http://localhost:3000/api/products?categoryId=${select}`)
+        const reponse = await fetch(API_BASE + `/products?categoryId=${select}`)
         const productByCategory = await reponse.json();
         afficherProduct(productByCategory);
     })
 }
 
 
-async function filterByPrice() {
-    const price = document.getElementById('price');
-    price.addEventListener('input', async function () {
-        const res = await fetch(`http://localhost:3000/api/products?maxPrice=${price.value}`)
+async function filterByPrice(priceValue) {
+    try {
+        const res = await fetch(API_BASE + `/products?maxPrice=${priceValue}`)
         const productByPrice = await res.json();
-        if(productByPrice != 0){
+        if (productByPrice != 0) {
             afficherProduct(productByPrice);
-        }else{
+        } else {
             catalog.textContent = "Aucun product touvé !"
         }
-    })
+    } catch (err) {
+        console.log(err.message);
+    }
 }
 
 
-filterByPrice();
+async function filterByStock(){
+    try{
+        const response = await fetch(API_BASE +'/products?inStock=true');
+    const productInStock = await response.json();
+    if(productInStock.length === 0){
+        catalog.textContent = "Aucun product in stock !"
+        return;
+    }
+    
+    if(inStock.checked){
+        // console.log(productInStock)
+        afficherProduct(productInStock);
+    }else{
+        return;
+    }
+    }catch(err){
+        console.log(err.message);
+        
+    }
+    
+   
+}
+
+
+
+
+price.addEventListener('input', function () {
+    filterByPrice(price.value)
+})
+
+search.addEventListener('input', function () {
+    searchProduct(search.value)
+})
+
+inStock.addEventListener('input', function(){
+    filterByStock();
+
+})
+
+//on init hadu khass ikhdmu
 getCategory();
 display();
-searchProduct();
 

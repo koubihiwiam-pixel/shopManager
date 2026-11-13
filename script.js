@@ -53,9 +53,9 @@ async function display() {
     afficherProduct(data);
 }
 
-
+const catalog = document.getElementById('catalog');
 async function searchProduct() {
-    const catalog = document.getElementById('catalog');
+    
     const search = document.getElementById('recherche');
     search.addEventListener('input', async function () {
         const response = await fetch(`http://localhost:3000/api/products?search=${search.value}`);
@@ -94,7 +94,23 @@ async function getCategory() {
     })
 }
 
-getCategory()
-display()
-searchProduct()
+
+async function filterByPrice() {
+    const price = document.getElementById('price');
+    price.addEventListener('input', async function () {
+        const res = await fetch(`http://localhost:3000/api/products?maxPrice=${price.value}`)
+        const productByPrice = await res.json();
+        if(productByPrice != 0){
+            afficherProduct(productByPrice);
+        }else{
+            catalog.textContent = "Aucun product touvé !"
+        }
+    })
+}
+
+
+filterByPrice();
+getCategory();
+display();
+searchProduct();
 

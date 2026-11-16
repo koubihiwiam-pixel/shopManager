@@ -37,22 +37,6 @@ function afficherProduct(data) {
     });
 
 }
-// async function searchProduct() {
-//     const data = await getData();
-//     const search = document.getElementById('recherche');
-//     afficherProduct(data);
-//     search.addEventListener('input', function () {
-
-//         let searchInput = search.value.toLowerCase().trim();
-
-//         let filtreProduct = data.filter(function(item) {
-//             let nom = item.name.toLowerCase();
-//             let description = item.description.toLowerCase();
-//             return nom.includes(searchInput) || description.includes(searchInput);
-//         });
-//         afficherProduct(filtreProduct);
-//     });
-// };
 async function display() {
     const data = await getData();
     afficherProduct(data);
@@ -89,66 +73,125 @@ async function getCategory() {
     })
     category.addEventListener('change', async function () {
         let select = this.value;
-        const reponse = await fetch(API_BASE + `/products?categoryId=${select}`)
-        const productByCategory = await reponse.json();
-        afficherProduct(productByCategory);
+        if (select == '') {
+            display();
+        } else {
+            const reponse = await fetch(API_BASE + `/products?categoryId=${select}`)
+            const productByCategory = await reponse.json();
+            afficherProduct(productByCategory);
+        }
+
     })
 }
 
 
 async function filterByPrice(priceValue) {
     try {
+        if (priceValue === "") {
+            display();
+            return;
+        }
         const res = await fetch(API_BASE + `/products?maxPrice=${priceValue}`)
         const productByPrice = await res.json();
-        if (productByPrice != 0) {
+        if (productByPrice.length != 0) {
             afficherProduct(productByPrice);
-        } else {
+        }
+        else {
             catalog.textContent = "Aucun product touvé !"
         }
+
+
+
     } catch (err) {
         console.log(err.message);
     }
 }
 
 
-async function filterByStock(){
-    try{
-        const response = await fetch(API_BASE +'/products?inStock=true');
-    const productInStock = await response.json();
-    if(productInStock.length === 0){
-        catalog.textContent = "Aucun product in stock !"
-        return;
-    }
-    
-    if(inStock.checked){
-        // console.log(productInStock)
-        afficherProduct(productInStock);
-    }else{
-        return;
-    }
-    }catch(err){
+async function filterByStock() {
+    try {
+        const response = await fetch(API_BASE + '/products?inStock=true');
+        const productInStock = await response.json();
+        if (productInStock.length === 0) {
+            catalog.textContent = "Aucun product in stock !"
+            return;
+        }
+
+        if (inStock.checked) {
+            afficherProduct(productInStock);
+        } else {
+            display();
+            return;
+        }
+    } catch (err) {
         console.log(err.message);
-        
+
     }
-    
-   
+}
+async function filterByAll() {
+    try {
+        const categories = category.value;
+        const prix = price.value;
+        const stock = inStock.checked;
+
+        let url = `${API_BASE}/products?`;
+
+        if (categories !== "") {
+            url += `categoryId=${categories}&`;
+        }
+
+        if (prix !== "") {
+            url += `maxPrice=${prix}&`;
+        }
+
+        if (stock) {
+            url += `inStock=true`;
+        }
+
+        const response = await fetch(url);
+        const products = await response.json();
+
+
+        if (products.length === 0) {
+            if (stock) {
+                catalog.textContent = "Aucun produit en stock !";
+            } 
+            else if (categories !== "") {
+                catalog.textContent = "Aucun produit dans cette catégorie !";
+            } 
+            else if (prix !== "") {
+                catalog.textContent = "Aucun produit trouvé pour ce prix !";
+            }
+            return;
+        }
+
+        afficherProduct(products);
+
+    } catch (err) {
+        console.log(err.message);
+    }
 }
 
 
 
-
-price.addEventListener('input', function () {
-    filterByPrice(price.value)
-})
+// price.addEventListener('input', function () {
+//     filterByPrice(price.value)
+// })
 
 search.addEventListener('input', function () {
     searchProduct(search.value)
 })
 
-inStock.addEventListener('input', function(){
-    filterByStock();
+// inStock.addEventListener('input', function () {
+//     filterByStock();
 
-})
+// })
+
+price.addEventListener('input', filterByAll);
+category.addEventListener('change', filterByAll);
+inStock.addEventListener('change', filterByAll);
+
+
 
 //on init hadu khass ikhdmu
 getCategory();

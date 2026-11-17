@@ -26,16 +26,20 @@ function afficherProduct(data) {
     data.forEach(function (element) {
         catalog.innerHTML += `<article class="w-[30%] max-[500px]:w-[90%] bg-gray-100 p-4 rounded-[5%] gap">
             <div>
-                <img src="http://localhost:3000${element.image}" class="rounded-[5%] ">
-                <h2 class="font-bold">${element.name}</h2>
-                <p class="text-xs">${element.description}</p>
-                <h3 class="text-xl font-bold">${element.price} $</h3>
-                <span class="bg-green-200 text-green-700 pl-2 pr-2 rounded-full">In stock ${element.stock}</span>
+                <img src="http://localhost:3000${element.image}" class="rounded-[5%] mb-5">
+                <h2 class="font-bold mb-1">${element.name}</h2>
+                <p class="text-xs mb-4">${element.description}</p>
+                <h3 class="text-xl font-bold mb-2">$ ${element.price}</h3>
+                <div class="flex justify-between">
+                <span class="bg-green-200 text-green-700 pl-2 pr-2 rounded-lg h-[30px]">In stock : ${element.stock}</span>
+                <input type="number" min=1 max=${element.stock} value="1" class="border-gray rounded w-[50px] bg-gray-200 pl-4" data-id=${element.id}>
+                </div>
+                <button class="panier bg-black text-white p-2 rounded-lg cursor-pointer mt-2.5 w-full" data-id=${element.id}><i class="fa-solid fa-cart-shopping"></i> Add to cart</button>
             </div>
         </article>`
-
     });
 
+    addProductToCart(data)
 }
 async function display() {
     const data = await getData();
@@ -99,9 +103,6 @@ async function filterByPrice(priceValue) {
         else {
             catalog.textContent = "Aucun product touvé !"
         }
-
-
-
     } catch (err) {
         console.log(err.message);
     }
@@ -155,10 +156,10 @@ async function filterByAll() {
         if (products.length === 0) {
             if (stock) {
                 catalog.textContent = "Aucun produit en stock !";
-            } 
+            }
             else if (categories !== "") {
                 catalog.textContent = "Aucun produit dans cette catégorie !";
-            } 
+            }
             else if (prix !== "") {
                 catalog.textContent = "Aucun produit trouvé pour ce prix !";
             }
@@ -171,7 +172,101 @@ async function filterByAll() {
         console.log(err.message);
     }
 }
+const cart = document.getElementById('cartShopping');
+const background = document.getElementById('background')
+function hide() {
+    cart.classList.remove('hidden');
+    background.classList.remove('hidden');
+}
+function closePanier() {
+    cart.classList.add('hidden');
+    background.classList.add('hidden')
+}
 
+
+function changeQty(button, value) {
+    const article = button.closest("article");
+    const quantite = article.querySelector(".quantite");
+    let qty = Number(quantite.textContent);
+    qty = qty + value;
+
+    if (qty < 1) {
+        qty = 1;
+    }
+
+    quantite.textContent = qty;
+}
+
+let panier = JSON.parse(localStorage.getItem('panier')) || [];
+function addProductToCart(data) {
+
+    let cartShop = catalog.querySelectorAll('.panier');
+    cartShop.forEach((btn) => {
+        btn.addEventListener('click', function (e) {
+            let idCarte = e.currentTarget.dataset.id;
+            let product = data.find(element => element.id == idCarte);
+            let input = catalog.querySelector(`input[data-id="${idCarte}"]`);
+            let quantite = Number(input.value);
+            if (quantite < 1 || quantite > product.stock) {
+                Swal.fire({
+                    title: 'Insufficient Stock!',
+                    text: `Only ${product.stock} products are available in stock.`,
+                    icon: 'error',
+                    confirmButtonText: 'Ok'
+                })
+                return;
+
+            }
+            let productExist = panier.find(element => element.id == product.id);
+            if (productExist) {
+                productExist.quantite += quantite;
+            } else {
+
+                let objCart = {
+                    id: product.id,
+                    titre: product.name,
+                    prix: product.price,
+                    quantite: quantite,
+                    description: product.description,
+                    image: product.image
+                };
+                panier.push(objCart)
+
+            }
+
+            localStorage.setItem('panier', JSON.stringify(panier));
+
+        })
+
+
+    })
+}
+function afficherProductInCart() {
+    const cartShopping = document.getElementById('cartShopping');
+    if(panier.length > 0){
+         cartShopping.innerHTML = `<button id="cart"  onclick="closePanier()" class="text-gray-500 float-right cursor-pointer"><i class="fa-solid fa-xmark"></i></button>`;
+    panier.forEach(function (item) {
+        cartShopping.innerHTML += `
+        <article class="flex justify-between border m-4 rounded-lg mt-10">
+            <img src="http://localhost:3000${item.image}" class="w-[100px]">
+            <div>
+                <h2 class="font-bold mb-4">${item.titre}</h2>
+                <p>${item.description}</p>
+            </div>
+            <div>
+                <h2 class="font-bold text-blue-500 mb-4">$${item.prix} </h2>
+                <button onclick="changeQty(this,-1)" class="font-bold cursor-pointer mb-3 ">-</button>
+                <span class="quantite bg-gray-300 pt-2 pb-2 pr-4 pl-4 rounded-full">${item.quantite}</span>
+                <button onclick="changeQty(this,1)" class="font-bold cursor-pointer mr-5">+</button>
+                <button class="text-red-500 mr-3 cursor-pointer"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+        </article>`
+
+    })
+    }else{
+        cart.textContent = "Your cart is empty"
+    }
+}
 
 
 // price.addEventListener('input', function () {
@@ -192,8 +287,7 @@ category.addEventListener('change', filterByAll);
 inStock.addEventListener('change', filterByAll);
 
 
-
 //on init hadu khass ikhdmu
 getCategory();
 display();
-
+ afficherProductInCart()

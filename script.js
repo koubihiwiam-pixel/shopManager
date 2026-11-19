@@ -1,4 +1,5 @@
 const API_BASE = "http://localhost:3000/api"
+let panier = JSON.parse(localStorage.getItem('panier')) || [];
 
 const price = document.getElementById('price');
 const catalog = document.getElementById('catalog');
@@ -29,7 +30,7 @@ function afficherProduct(data) {
                 <img src="http://localhost:3000${element.image}" class="rounded-[5%] mb-5">
                 <h2 class="font-bold mb-1">${element.name}</h2>
                 <p class="text-xs mb-4">${element.description}</p>
-                <h3 class="text-xl font-bold mb-2">$ ${element.price}</h3>
+                <h3 class="text-xl font-bold mb-2">$${element.price}</h3>
                 <div class="flex justify-between">
                 <span class="bg-green-200 text-green-700 pl-2 pr-2 rounded-lg h-[30px]">In stock : ${element.stock}</span>
                 <input type="number" min=1 max=${element.stock} value="1" class="border-gray rounded w-[50px] bg-gray-200 pl-4" data-id=${element.id}>
@@ -41,10 +42,12 @@ function afficherProduct(data) {
 
     addProductToCart(data)
 }
+
 async function display() {
     const data = await getData();
     afficherProduct(data);
 }
+
 
 async function searchProduct(serchValue) {
 
@@ -188,16 +191,24 @@ function changeQty(button, value) {
     const article = button.closest("article");
     const quantite = article.querySelector(".quantite");
     let qty = Number(quantite.textContent);
+    const id = article.dataset.id;
+    let productExist = panier.find(item => item.id == id);
+    
     qty = qty + value;
 
     if (qty < 1) {
         qty = 1;
     }
-
+    if (qty > productExist.stock) {
+        qty = productExist.stock;
+    }
+    productExist.quantite = qty;
     quantite.textContent = qty;
+    localStorage.setItem("panier", JSON.stringify(panier));
+    afficherProductInCart();
 }
 
-let panier = JSON.parse(localStorage.getItem('panier')) || [];
+
 function addProductToCart(data) {
 
     let cartShop = catalog.querySelectorAll('.panier');
@@ -207,7 +218,12 @@ function addProductToCart(data) {
             let product = data.find(element => element.id == idCarte);
             let input = catalog.querySelector(`input[data-id="${idCarte}"]`);
             let quantite = Number(input.value);
-            if (quantite < 1 || quantite > product.stock) {
+            let quantiteTotal = quantite;
+            let productExist = panier.find(element => element.id == product.id);
+            if (productExist) {
+                quantiteTotal += productExist.quantite;
+            }
+            if (quantite < 1 || quantiteTotal > product.stock) {
                 Swal.fire({
                     title: 'Insufficient Stock!',
                     text: `Only ${product.stock} products are available in stock.`,
@@ -217,57 +233,78 @@ function addProductToCart(data) {
                 return;
 
             }
-            let productExist = panier.find(element => element.id == product.id);
+            console.log(product);
+            
             if (productExist) {
                 productExist.quantite += quantite;
             } else {
-
                 let objCart = {
                     id: product.id,
                     titre: product.name,
                     prix: product.price,
                     quantite: quantite,
+                    stock: product.stock,
                     description: product.description,
                     image: product.image
                 };
                 panier.push(objCart)
-
             }
-
             localStorage.setItem('panier', JSON.stringify(panier));
-
+            afficherProductInCart();
+            Swal.fire({
+                title: "Added successfully!",
+                icon: "success",
+                draggable: true
+            });
         })
-
-
     })
 }
+const displayCart = document.getElementById('display-cart');
 function afficherProductInCart() {
-    const cartShopping = document.getElementById('cartShopping');
-    if(panier.length > 0){
-         cartShopping.innerHTML = `<button id="cart"  onclick="closePanier()" class="text-gray-500 float-right cursor-pointer"><i class="fa-solid fa-xmark"></i></button>`;
-    panier.forEach(function (item) {
-        cartShopping.innerHTML += `
-        <article class="flex justify-between border m-4 rounded-lg mt-10">
-            <img src="http://localhost:3000${item.image}" class="w-[100px]">
+    let totalPrice = 0;
+    
+    total.innerHTML="";
+    if (panier.length > 0) {
+        displayCart.innerHTML = "";
+        panier.forEach(function (item) {
+            displayCart.innerHTML += `
+        <article data-id="${item.id}" class="flex justify-between border m-4 rounded-lg mt-10">
+            <img src="http://localhost:3000${item.image}" class="w-[100px] rounded-lg">
             <div>
                 <h2 class="font-bold mb-4">${item.titre}</h2>
                 <p>${item.description}</p>
             </div>
             <div>
                 <h2 class="font-bold text-blue-500 mb-4">$${item.prix} </h2>
-                <button onclick="changeQty(this,-1)" class="font-bold cursor-pointer mb-3 ">-</button>
-                <span class="quantite bg-gray-300 pt-2 pb-2 pr-4 pl-4 rounded-full">${item.quantite}</span>
-                <button onclick="changeQty(this,1)" class="font-bold cursor-pointer mr-5">+</button>
-                <button class="text-red-500 mr-3 cursor-pointer"><i class="fa-solid fa-trash-can"></i></button>
+                <button onclick="changeQty(this,-1)" class="font-bold cursor-pointer mb-3 rounded pl-2.5  pr-2.5 pb-0.5 bg-gray-100">-</button>
+                <span class="quantite bg-gray-300 pt-2 pb-2 pr-4 pl-4 rounded-full" >${item.quantite}</span>
+                <button onclick="changeQty(this,1)" class="font-bold cursor-pointer mr-5 rounded pl-2  pr-2 pb-0.5 bg-gray-100">+</button>
+                <button class="supprimer text-red-500 mr-3 cursor-pointer"><i class="fa-solid fa-trash-can" data-id="${item.id}"></i></button>
             </div>
         </article>`
-
-    })
-    }else{
-        cart.textContent = "Your cart is empty"
+            totalPrice += item.prix * item.quantite;
+        })
+    } else {
+        displayCart.textContent = "Your cart is empty"
     }
+    total.innerHTML += `<span class="font-bold ml-8">Total : </span> 
+                        <span class="text-red-500 font-bold mr-8">$${totalPrice}</span>`;
+                        supprimerCart()
 }
 
+function supprimerCart(){
+    const supprimerCart = displayCart.querySelectorAll('.supprimer');
+    supprimerCart.forEach((btn)=>{
+        btn.addEventListener('click', function(e){
+            let idCart = e.target.dataset.id;
+            panier = panier.filter(function (carte) {
+                    return carte.id != idCart;
+                });
+            localStorage.setItem("panier", JSON.stringify(panier));
+            afficherProductInCart()
+        })
+    })
+}
 
 // price.addEventListener('input', function () {
 //     filterByPrice(price.value)
@@ -290,4 +327,5 @@ inStock.addEventListener('change', filterByAll);
 //on init hadu khass ikhdmu
 getCategory();
 display();
- afficherProductInCart()
+afficherProductInCart()
+supprimerCart();
